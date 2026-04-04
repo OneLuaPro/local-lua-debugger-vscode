@@ -207,8 +207,8 @@ export namespace SourceMap {
             const scriptRootsStr = os.getenv(scriptRootsEnv);
             if (scriptRootsStr) {
                 for (let [path] of scriptRootsStr.gmatch("[^;]+")) {
-                    path = Path.format(path) + Path.separator;
-                    table.insert(scriptRoots, path);
+                    const formattedPath = Path.format(path) + Path.separator;
+                    table.insert(scriptRoots, formattedPath);
                 }
             }
         }

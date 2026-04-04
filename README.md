@@ -4,6 +4,34 @@ A simple Lua debugger which requires no additional dependencies.
 
 ---
 
+## Preface
+
+**2026-04-04** Merged from different sources:
+
+```txt
+tomblind/local-lua-debugger-vscode
+|-- jan6055/local-lua-debugger-vscode (+1)              07-OK
+|-- Dobby233Liu/local-lua-debugger-vscode (+6)			08-Errors-not-merged
+|-- Ismoh/local-lua-debugger-vscode (+57)               09-OK-Up-to-date
+|   |-- jurmerlo/local-lua-debugger-vscode (+58)        01-OK
+|   |-- eduardomezencio/local-lua-debugger-vscode (+49) 02-OK-Up-to-date
+|   |-- Vanglant/local-lua-debugger-vscode (+43)        03-OK-Up-to-date
+|   |-- jaymo1011/local-lua-debugger-vscode (+33)       04-OK-Up-to-date
+|   |-- ogsadmin/local-lua-debugger-vscode (+20)        05-OK-Up-to-date
+|   |__ Zorbn/local-lua-debugger-vscode (+19)           06-Errors-not-merged
+|-- EdMUK/local-lua-debugger-vscode (+7)                10-OK-Up-to-date
+|-- rewqazxv/local-lua-debugger-vscode (+1)             11-Errors-not-merged
+|-- sewbacca/local-lua-debugger-vscode (+2)             12-OK-Up-to-date
+|-- tarantool/tarantool-lua-debugger-vscode (+8)        13-Errors-not-merged
+|   |-- mivallion/tarantool-lua-debugger-vscode (+8)	Up to date with tarantool
+|   |__ tsafin/tarantool-local-lua-debugger-vscode (+3) 14-not-tried
+|__ B-head/local-lua-debugger-vscode (+16)              15-Errors-not-merged
+```
+
+The rest of this document is in its original state.
+
+------
+
 ## Disclaimer
 
 > Forked from [tomblind/local-lua-debugger-vscode](https://github.com/tomblind/local-lua-debugger-vscode) to maintain the extension, until the main repo will be maintained again. <br>

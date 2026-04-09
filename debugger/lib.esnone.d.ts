@@ -1,6 +1,7 @@
 //MIT License
 //
 //Copyright (c) 2020 Tom Blind
+//Copyright (c) 2026 The OneLuaPro project authors
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -38,12 +39,12 @@ interface Iterator<T, TReturn = any, TNext = undefined> {
     throw?(e?: any): IteratorResult<T, TReturn>;
 }
 
-interface Iterable<T> {
-    [Symbol.iterator](): Iterator<T>;
+interface Iterable<T, TReturn = any, TNext = undefined> {
+    [Symbol.iterator](): Iterator<T, TReturn, TNext>;
 }
 
-interface IterableIterator<T> extends Iterator<T> {
-    [Symbol.iterator](): IterableIterator<T>;
+interface IterableIterator<T, TReturn = any, TNext = undefined> extends Iterator<T, TReturn, TNext> {
+    [Symbol.iterator](): IterableIterator<T, TReturn, TNext>;
 }
 
 interface Array<T> {
@@ -83,3 +84,9 @@ type Exclude<T, U> = T extends U ? never : T;
 type Record<K extends keyof any, T> = {
     [P in K]: T;
 };
+
+type Partial<T> = {
+    [P in keyof T]?: T[P];
+};
+
+type NonNullable<T> = T extends null | undefined ? never : T;

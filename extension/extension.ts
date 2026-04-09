@@ -1,6 +1,7 @@
 //MIT License
 //
 //Copyright (c) 2020 Tom Blind
+//Copyright (c) 2026 The OneLuaPro project authors
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +41,7 @@ const configurationProvider: vscode.DebugConfigurationProvider = {
     async resolveDebugConfiguration(
         folder: vscode.WorkspaceFolder | undefined,
         config: vscode.DebugConfiguration & Partial<LaunchConfig>,
-        token?: vscode.CancellationToken
+        _token?: vscode.CancellationToken
     ): Promise<vscode.DebugConfiguration | null | undefined> {
         //Validate config
         const editor = vscode.window.activeTextEditor;
@@ -106,14 +107,13 @@ const configurationProvider: vscode.DebugConfigurationProvider = {
 };
 
 let debugAdapaterDescriptorFactory: (vscode.DebugAdapterDescriptorFactory & { dispose: () => void }) | undefined;
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 if (enableServer) {
     let server: Net.Server | null = null;
 
     debugAdapaterDescriptorFactory = {
         createDebugAdapterDescriptor(
-            session: vscode.DebugSession,
-            executable: vscode.DebugAdapterExecutable | undefined
+            _session: vscode.DebugSession,
+            _executable: vscode.DebugAdapterExecutable | undefined
         ): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
             if (server === null) {
                 server = Net.createServer(socket => {

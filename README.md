@@ -1,34 +1,72 @@
-# `Second` Local Lua Debugger for Visual Studio Code
+# `Third` Local Lua Debugger for Visual Studio Code
 
 A simple Lua debugger which requires no additional dependencies.
 
 ---
 
-## Preface
+## Disclaimer (Third Generation Fork)
 
-**2026-04-04** Merged from different sources:
+This repository represents the **"Third" Generation** of the Local Lua Debugger. It consolidates years of community developments into a single, modernized codebase.
+
+### Consolidation & Modernization
+
+This fork merges the original work by [tomblind](https://github.com/tomblind/local-lua-debugger-vscode) with significant improvements from [Ismoh](https://github.com/Ismoh/local-lua-debugger-vscode) and several other key contributors.
+
+**Key Updates:**
+
+*   **Infrastructure:** Upgraded to **TypeScript 5.x** and **TSTL 1.34+**.
+*   **Language Support:** Full compatibility with **Lua 5.5** (including 64-bit integers and new operators) while maintaining support for Lua 5.1, 5.2, 5.3, 5.4, and LuaJIT.
+*   **Zero-Config Injection:** The debugger is now globally available via `_G.lldebugger` when launched through VS Code. Manual `require` is no longer strictly necessary.
+*   **Bug Fixes:** Resolved the critical `unpack` error in TSTL-generated code and improved Windows path handling.
+
+### How to use
+
+Depending on your workflow, you can either let the debugger handle everything automatically or manually trigger it within your code.
+
+#### Method A: Automatic (Recommended)
+Simply start your script via the VS Code Debugger. The debugger will automatically inject itself. You can check for its presence in your Lua code:
+```lua
+if lldebugger then
+    -- Debugger is active and injected
+end
+```
+
+#### Method B: Manual start
+If you prefer manual control or need to start the debugger at a specific point in your execution, use the following snippet:
+```lua
+local hasModule, lld = pcall(require, "lldebugger")
+if hasModule then
+    lld.start()
+end
+```
+
+### Code Dependency Graph
+
+The following sources have been integrated into this release:
 
 ```txt
 tomblind/local-lua-debugger-vscode
-|-- jan6055/local-lua-debugger-vscode (+1)              07-OK
-|-- Dobby233Liu/local-lua-debugger-vscode (+6)			08-Errors-not-merged
-|-- Ismoh/local-lua-debugger-vscode (+57)               09-OK-Up-to-date
-|   |-- jurmerlo/local-lua-debugger-vscode (+58)        01-OK
-|   |-- eduardomezencio/local-lua-debugger-vscode (+49) 02-OK-Up-to-date
-|   |-- Vanglant/local-lua-debugger-vscode (+43)        03-OK-Up-to-date
-|   |-- jaymo1011/local-lua-debugger-vscode (+33)       04-OK-Up-to-date
-|   |-- ogsadmin/local-lua-debugger-vscode (+20)        05-OK-Up-to-date
-|   |__ Zorbn/local-lua-debugger-vscode (+19)           06-Errors-not-merged
-|-- EdMUK/local-lua-debugger-vscode (+7)                10-OK-Up-to-date
-|-- rewqazxv/local-lua-debugger-vscode (+1)             11-Errors-not-merged
-|-- sewbacca/local-lua-debugger-vscode (+2)             12-OK-Up-to-date
-|-- tarantool/tarantool-lua-debugger-vscode (+8)        13-Errors-not-merged
-|   |-- mivallion/tarantool-lua-debugger-vscode (+8)	Up to date with tarantool
-|   |__ tsafin/tarantool-local-lua-debugger-vscode (+3) 14-not-tried
-|__ B-head/local-lua-debugger-vscode (+16)              15-Errors-not-merged
+|-- jan6055/local-lua-debugger-vscode (+1)              Merged (Lua 5.5 Support)
+|-- Dobby233Liu/local-lua-debugger-vscode (+6)			Errors-not-merged
+|-- Ismoh/local-lua-debugger-vscode (+57)               Merged
+|   |-- jurmerlo/local-lua-debugger-vscode (+58)        Merged
+|   |-- eduardomezencio/local-lua-debugger-vscode (+49) Merged
+|   |-- Vanglant/local-lua-debugger-vscode (+43)        Merged
+|   |-- jaymo1011/local-lua-debugger-vscode (+33)       Merged
+|   |-- ogsadmin/local-lua-debugger-vscode (+20)        Merged
+|   |__ Zorbn/local-lua-debugger-vscode (+19)           Merged
+|-- EdMUK/local-lua-debugger-vscode (+7)                Merged
+|-- rewqazxv/local-lua-debugger-vscode (+1)             Errors-not-merged
+|-- sewbacca/local-lua-debugger-vscode (+2)             Merged
+|-- tarantool/tarantool-lua-debugger-vscode (+8)        Errors-not-merged
+|   |-- mivallion/tarantool-lua-debugger-vscode (+8)	Errors-not-merged
+|   |__ tsafin/tarantool-local-lua-debugger-vscode (+3) Errors-not-merged
+|__ B-head/local-lua-debugger-vscode (+16)              Errors-not-merged
 ```
 
-The rest of this document is in its original state.
+> [!IMPORTANT]
+>
+> The author of this fork makes no claim to the original work. Instead, all contributions from previous authors are fully acknowledged. This fork is solely an attempt to consolidate various improvements and unaddressed pull requests into a functional, up-to-date codebase. You can compare the changes between the original and this fork [here](https://github.com/tomblind/local-lua-debugger-vscode/compare/master...OneLuaPro:local-lua-debugger-vscode:master). The remainder of this document remains in its original state.
 
 ------
 

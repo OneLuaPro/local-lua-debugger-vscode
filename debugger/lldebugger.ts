@@ -1,6 +1,7 @@
 //MIT License
 //
 //Copyright (c) 2020 Tom Blind
+//Copyright (c) 2026 The OneLuaPro project authors
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +26,13 @@ import {Debugger} from "./debugger";
 
 //Set global reference by directly accessing self from TSTL exports variable
 declare const ____exports: unknown;
-_G.lldebugger = _G.lldebugger || ____exports;
+(_G as any).lldebugger = (_G as any).lldebugger || ____exports;
 
 //Don't buffer io
-// eslint-disable-next-line
-if (io.stdout) {
+if (io.stdout !== undefined) {
     io.stdout.setvbuf("no");
 }
-// eslint-disable-next-line
-if (io.stderr) {
+if (io.stderr !== undefined) {
     io.stderr.setvbuf("no");
 }
 
@@ -72,10 +71,11 @@ export function runFile(filePath: unknown, breakImmediately?: boolean, arg?: unk
         {arg},
         {
             __index: _G,
-            __newindex: (self: unknown, key: keyof typeof _G, value: unknown) => { _G[key] = value; }
+            __newindex: (self: unknown, key: keyof typeof _G, value: unknown) => { (_G as any)[key] = value; }
         }
     );
-    const [func] = luaAssert(...loadLuaFile(filePath, env));
+    // const [func] = luaAssert(...loadLuaFile(filePath, env));
+    const func = (luaAssert as any)(...(loadLuaFile(filePath, env) as any));
     return Debugger.debugFunction(func as Debugger.DebuggableFunction, breakImmediately, arg ?? []);
 }
 

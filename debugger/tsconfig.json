@@ -3,16 +3,21 @@
     {
         "target": "es6",
         "strict": true,
-        "keyofStringsOnly": true,
-        "typeRoots": [],
-        "types": ["typescript-to-lua/language-extensions"],
         "noLib": true,
         "sourceMap": true,
         "rootDir": ".",
-        "noUncheckedIndexedAccess": true
+        "noUncheckedIndexedAccess": true,
+	"moduleResolution": "node",
+	"baseUrl": ".",
+	"paths": {
+            "*": ["node_modules/*"]
+	},
+	"types": []
     },
     "include": [
-        "./**/*.ts"
+        "./**/*.ts",
+	"../node_modules/lua-types/5.5.d.ts",
+        "../node_modules/typescript-to-lua/language-extensions.d.ts"
     ],
     "tstl":
     {

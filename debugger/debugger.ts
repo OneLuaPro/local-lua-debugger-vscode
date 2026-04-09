@@ -1,6 +1,7 @@
 //MIT License
 //
-//Copyright (c) 202 Tom Blind
+//Copyright (c) 2020 Tom Blind
+//Copyright (c) 2026 The OneLuaPro project authors
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +36,12 @@ import {SourceMap} from "./sourcemap";
 import {Send} from "./send";
 import {Breakpoint} from "./breakpoint";
 import {Thread, mainThread, mainThreadName, isThread} from "./thread";
+
+// Lua 5.1 does not know about table.unpack()
+const luaTable = _G.table as any;
+if (!luaTable.unpack) {
+    luaTable.unpack = (_G as any).unpack;
+}
 
 export interface Var {
     val: unknown;
@@ -116,7 +123,8 @@ export namespace Debugger {
     }
 
     function getActiveThread() {
-        return coroutine.running() ?? mainThread;
+    	const [thread] = coroutine.running();
+        return thread ?? mainThread;
     }
 
     function getLine(info: debug.FunctionInfo) {
@@ -139,7 +147,7 @@ export namespace Debugger {
                 source: info.source && Path.format(info.source) || "?",
                 line: getLine(info)
             };
-            if (info.source) {
+            if (info.source !== undefined) {
                 const sourceMap = SourceMap.get(frame.source);
                 if (sourceMap) {
                     const lineMapping = sourceMap.mappings[frame.line];
@@ -154,7 +162,7 @@ export namespace Debugger {
             }
             if (info.name) {
                 frame.func = info.name;
-            } else if (info.func) {
+            } else if (info.func !== undefined) {
                 frame.func = tostring(info.func);
             }
             if (i === frameIndex) {
@@ -173,15 +181,15 @@ export namespace Debugger {
 
     function isValidIdentifier(name: string) {
         if (supportsUtf8Identifiers) {
-            for (const [c] of name.gmatch("[^a-zA-Z0-9_]")) {
-                const [a] = c.byte();
-                if (a && a < 128) {
+            for (const [c] of string.gmatch(name,"[^a-zA-Z0-9_]")) {
+		const a = string.byte(c!);
+                if (a !== undefined && a < 128) {
                     return false;
                 }
             }
             return true;
         } else {
-            const [invalidChar] = name.match("[^a-zA-Z0-9_]");
+            const [invalidChar] = string.match(name,"[^a-zA-Z0-9_]");
             return invalidChar === undefined;
         }
     }
@@ -196,9 +204,9 @@ export namespace Debugger {
         //Validate level
         let info: debug.FunctionInfo | undefined;
         if (thread) {
-            info = debug.getinfo(thread, level, "u");
+            info = debug.getinfo(thread, level, "u") as any;
         } else {
-            info = debug.getinfo(level + 1, "u");
+            info = debug.getinfo(level + 1, "u") as any;
         }
         if (!info) {
             return locs;
@@ -346,7 +354,7 @@ export namespace Debugger {
         let nonNameStart = 1;
         let mappedExpression = "";
         for (const i of $range(1, expression.length)) {
-            const char = expression.sub(i, i);
+            const char = string.sub(expression,i, i);
             if (inQuote) {
                 if (char === "\\") {
                     isEscaped = !isEscaped;
@@ -359,27 +367,27 @@ export namespace Debugger {
                 //TODO: Handle bracket string types ([[foo]], [=[bar]=], etc...)
                 inQuote = char;
             } else {
-                const [nameChar] = char.match("[^\"'`~!@#%%^&*%(%)%-+=%[%]{}|\\/<>,%.:;%s]");
+                const [nameChar] = string.match(char,"[^\"'`~!@#%%^&*%(%)%-+=%[%]{}|\\/<>,%.:;%s]");
                 if (nameStart) {
                     if (!nameChar) {
-                        const sourceName = expression.sub(nameStart, i - 1);
+                        const sourceName = string.sub(expression,nameStart, i - 1);
                         mappedExpression += mapName(sourceName, nameIsProperty);
                         nameStart = undefined;
                         nonNameStart = i;
                     }
                 } else if (nameChar) {
-                    const lastChar = expression.sub(i - 1, i - 1);
+                    const lastChar = string.sub(expression,i - 1, i - 1);
                     nameIsProperty = (lastChar === ".");
                     nameStart = i;
-                    mappedExpression += expression.sub(nonNameStart, nameStart - (nameIsProperty ? 2 : 1));
+                    mappedExpression += string.sub(expression,nonNameStart, nameStart - (nameIsProperty ? 2 : 1));
                 }
             }
         }
         if (nameStart) {
-            const sourceName = expression.sub(nameStart);
+            const sourceName = string.sub(expression,nameStart);
             mappedExpression += mapName(sourceName, nameIsProperty);
         } else {
-            mappedExpression += expression.sub(nonNameStart);
+            mappedExpression += string.sub(expression,nonNameStart);
         }
 
         return mappedExpression;
@@ -394,7 +402,7 @@ export namespace Debugger {
         thread?: Thread
     ): LuaMultiReturn<[true, ...unknown[]] | [false, string]> {
         if (thread === mainThreadName) {
-            return $multi(false, "unable to access main thread while running in a coroutine");
+            return $multi(false as const, "unable to access main thread while running in a coroutine");
         }
 
         if (!thread) {
@@ -415,7 +423,7 @@ export namespace Debugger {
                     if (variable !== undefined) {
                         return variable.val;
                     }
-                    return fenv[name];
+                    return (fenv as any)[name];
                 },
                 __newindex(this: unknown, name: string, val: unknown) {
                     const variable = locs.vars[name] ?? ups.vars[name];
@@ -423,7 +431,7 @@ export namespace Debugger {
                         variable.type = type(val);
                         variable.val = val;
                     } else {
-                        fenv[name] = val;
+                        (fenv as any)[name] = val;
                     }
                 }
             }
@@ -432,7 +440,7 @@ export namespace Debugger {
         const loadStringResult = loadLuaString(statement, env);
         const func = loadStringResult[0];
         if (!func) {
-            return $multi(false, loadStringResult[1]);
+            return $multi(false as const, loadStringResult[1]);
         }
 
         const varargs: unknown[] = [];
@@ -442,7 +450,7 @@ export namespace Debugger {
             }
         }
 
-        const results = pcall<unknown[], unknown[]>(func, ...unpack(varargs));
+        const results = pcall<unknown[], unknown[]>(func, ...table.unpack(varargs));
         if (results[0]) {
             for (const [_, loc] of pairs(locs.vars)) {
                 if (thread) {
@@ -454,13 +462,13 @@ export namespace Debugger {
             for (const [_, up] of pairs(ups.vars)) {
                 debug.setupvalue(luaAssert(info.func), up.index, up.val);
             }
-            return $multi(true, ...unpack(results, 2));
+            return $multi(true as const, ...table.unpack(results, 2));
         }
-        return $multi(false, results[1]);
+        return $multi(false as const, results[1]);
     }
 
     function getInput(): string | undefined {
-        const inp = inputFile.read("*l");
+        const inp = inputFile.read("l");
         return inp;
     }
 
@@ -480,9 +488,9 @@ export namespace Debugger {
         while (true) {
             let stackInfo: debug.FunctionInfo | undefined;
             if (thread) {
-                stackInfo = debug.getinfo(thread, i, "nSluf");
+                stackInfo = debug.getinfo(thread, i, "nSluf") as any;
             } else {
-                stackInfo = debug.getinfo(i, "nSluf");
+                stackInfo = debug.getinfo(i, "nSluf") as any;
             }
             if (!stackInfo) {
                 break;
@@ -565,8 +573,8 @@ export namespace Debugger {
             } else if (inp === "threads") {
                 Send.threads(threadIds, activeThread);
 
-            } else if (inp.sub(1, 6) === "thread") {
-                const [newThreadIdStr] = inp.match("^thread%s+(%d+)$");
+            } else if (string.sub(inp,1, 6) === "thread") {
+                const [newThreadIdStr] = string.match(inp,"^thread%s+(%d+)$");
                 if (newThreadIdStr !== undefined) {
                     const newThreadId = luaAssert(tonumber(newThreadIdStr));
                     let newThread: Thread | undefined;
@@ -583,13 +591,13 @@ export namespace Debugger {
                             currentStack = [{
                                 name: "unable to access main thread while running in a coroutine",
                                 source: ""
-                            }];
+                            } as any];
                         } else {
                             currentStack = getStack(newThread);
                             if (currentStack.length === 0) {
                                 table.insert(
                                     currentStack,
-                                    {name: "thread has not been started", source: ""}
+                                    {name: "thread has not been started", source: ""} as any
                                 );
                             }
                         }
@@ -627,8 +635,8 @@ export namespace Debugger {
             } else if (inp === "stack") {
                 backtrace(currentStack, frame);
 
-            } else if (inp.sub(1, 5) === "frame") {
-                const [newFrameStr] = inp.match("^frame%s+(%d+)$");
+            } else if (string.sub(inp,1, 5) === "frame") {
+                const [newFrameStr] = string.match(inp,"^frame%s+(%d+)$");
                 if (newFrameStr !== undefined) {
                     const newFrame = luaAssert(tonumber(newFrameStr));
                     if (newFrame > 0 && newFrame <= currentStack.length) {
@@ -669,8 +677,8 @@ export namespace Debugger {
                 mapVarNames(globs, sourceMap);
                 Send.vars(globs);
 
-            } else if (inp.sub(1, 5) === "break") {
-                const [cmd] = inp.match("^break%s+([a-z]+)");
+            } else if (string.sub(inp,1, 5) === "break") {
+                const [cmd] = string.match(inp,"^break%s+([a-z]+)");
                 let file: string | undefined;
                 let line: number | undefined;
                 let breakpoint: LuaDebug.Breakpoint | undefined;
@@ -683,7 +691,7 @@ export namespace Debugger {
                     || cmd === "enable"
                 ) {
                     let lineStr: string | undefined;
-                    [file, lineStr] = inp.match("^break%s+[a-z]+%s+(.-):(%d+)");
+                    [file, lineStr] = string.match(inp,"^break%s+[a-z]+%s+(.-):(%d+)");
                     if (file !== undefined && lineStr !== undefined) {
                         line = luaAssert(tonumber(lineStr));
                         breakpoint = Breakpoint.get(file, line);
@@ -691,7 +699,7 @@ export namespace Debugger {
                 }
                 if (cmd === "set") {
                     if (file !== undefined && line !== undefined) {
-                        const [condition] = inp.match("^break%s+[a-z]+%s+.-:%d+%s+(.+)");
+                        const [condition] = string.match(inp,"^break%s+[a-z]+%s+.-:%d+%s+(.+)");
                         Breakpoint.add(file, line, condition);
                         breakpoint = luaAssert(Breakpoint.get(file, line));
                         Send.breakpoints([breakpoint]);
@@ -734,8 +742,8 @@ export namespace Debugger {
                     Send.error("Bad breakpoint command");
                 }
 
-            } else if (inp.sub(1, 4) === "eval") {
-                const [expression] = inp.match("^eval%s+(.+)$");
+            } else if (string.sub(inp,1, 4) === "eval") {
+                const [expression] = string.match(inp,"^eval%s+(.+)$");
                 if (!expression) {
                     Send.error("Bad expression");
 
@@ -748,14 +756,14 @@ export namespace Debugger {
                         currentThread !== activeThread ? currentThread : undefined
                     );
                     if (results[0]) {
-                        Send.result(...unpack(results, 2));
+                        Send.result(...table.unpack(results, 2));
                     } else {
                         Send.error(results[1]);
                     }
                 }
 
-            } else if (inp.sub(1, 5) === "props") {
-                const [expression, kind, first, count] = inp.match("^props%s+(.-)%s*([a-z]+)%s*(%d*)%s*(%d*)$");
+            } else if (string.sub(inp,1, 5) === "props") {
+                const [expression, kind, first, count] = string.match(inp,"^props%s+(.-)%s*([a-z]+)%s*(%d*)%s*(%d*)$");
                 if (!expression) {
                     Send.error("Bad expression");
 
@@ -774,7 +782,6 @@ export namespace Debugger {
                         if (type(r) === "table") {
                             Send.props(r as AnyTable, kind, tonumber(first), tonumber(count));
                         } else if (type(r) === "function") {
-                            // eslint-disable-next-line @typescript-eslint/ban-types
                             Send.functionUpvalues(r as Function);
                         } else {
                             Send.error(`Expression "${mappedExpression}" is not a table nor a function`);
@@ -784,8 +791,8 @@ export namespace Debugger {
                     }
                 }
 
-            } else if (inp.sub(1, 4) === "exec") {
-                const [statement] = inp.match("^exec%s+(.+)$");
+            } else if (string.sub(inp,1, 4) === "exec") {
+                const [statement] = string.match(inp,"^exec%s+(.+)$");
                 if (!statement) {
                     Send.error("Bad statement");
 
@@ -797,14 +804,14 @@ export namespace Debugger {
                         currentThread !== activeThread ? currentThread : undefined
                     );
                     if (results[0]) {
-                        Send.result(...unpack(results, 2));
+                        Send.result(...table.unpack(results, 2));
                     } else {
                         Send.error(results[1]);
                     }
                 }
 
-            } else if (inp.sub(1, 6) === "script") {
-                let [scriptFile] = inp.match("^script%s+(.+)$");
+            } else if (string.sub(inp,1, 6) === "script") {
+                let [scriptFile] = string.match(inp,"^script%s+(.+)$");
                 if (!scriptFile) {
                     Send.error("Bad script file");
 
@@ -818,8 +825,8 @@ export namespace Debugger {
                     }
                 }
 
-            } else if (inp.sub(1, 6) === "ignore") {
-                const [ignorePattern] = inp.match("^ignore%s+(.+)$");
+            } else if (string.sub(inp,1, 6) === "ignore") {
+                const [ignorePattern] = string.match(inp,"^ignore%s+(.+)$");
                 if (!ignorePattern) {
                     Send.error("Bad ignore pattern");
                 } else {
@@ -847,8 +854,8 @@ export namespace Debugger {
 
     function comparePaths(a: string, b: string) {
         //If path is relative, make direct path comparision
-        const [isParentA] = a.match(`^%.%.[/${Path.separator}]`);
-        const [isParentB] = b.match(`^%.%.[/${Path.separator}]`);
+        const [isParentA] = string.match(a,`^%.%.[/${Path.separator}]`);
+        const [isParentB] = string.match(b,`^%.%.[/${Path.separator}]`);
         if (isParentA || isParentB)
             /*
                 NOTE:
@@ -856,7 +863,7 @@ export namespace Debugger {
                 However it seems to have fixed https://github.com/tomblind/local-lua-debugger-vscode/issues/62
                 So unless another issue rolls in, this does just fine
             */
-            return Path.getAbsolute(a).lower() === Path.getAbsolute(b).lower();
+            return string.lower(Path.getAbsolute(a)) === string.lower(Path.getAbsolute(b));
 
         let aLen = a.length;
         const bLen = b.length;
@@ -867,16 +874,16 @@ export namespace Debugger {
         if (bLen < aLen) {
             [a, aLen, b] = [b, bLen, a];
         }
-        if (a !== b.sub(-aLen)) {
+        if (a !== string.sub(b,-aLen)) {
             return false;
         }
         //If shorter string doesn't start with '/', make sure the longer one has '/' right before the substring
         //so we don't match a partial filename.
-        if (a.sub(1, 1) === Path.separator) {
+        if (string.sub(a,1, 1) === Path.separator) {
             return true;
         }
         const bSep = -(aLen + 1);
-        return b.sub(bSep, bSep) === Path.separator;
+        return string.sub(b,bSep, bSep) === Path.separator;
     }
 
     const debugHookStackOffset = 2;
@@ -908,14 +915,14 @@ export namespace Debugger {
                 }
 
                 //Ignore debugger code
-                if (topFrameSource.source.sub(-debuggerName.length) === debuggerName) {
+                if (string.sub(topFrameSource.source,-debuggerName.length) === debuggerName) {
                     return;
                 }
 
                 //Ignore builtin lua functions (luajit)
                 if (
                     topFrameSource.short_src
-                    && topFrameSource.short_src.sub(1, builtinFunctionPrefix.length) === builtinFunctionPrefix
+                    && string.sub(topFrameSource.short_src,1, builtinFunctionPrefix.length) === builtinFunctionPrefix
                 ) {
                     return;
                 }
@@ -925,7 +932,7 @@ export namespace Debugger {
                 if (ignorePatterns) {
                     source = Path.format(topFrameSource.source);
                     for (const pattern of ignorePatterns) {
-                        const [match] = source.match(pattern);
+                        const [match] = string.match(source,pattern);
                         if (match) {
                             return;
                         }
@@ -936,7 +943,6 @@ export namespace Debugger {
                 if (skipUnmappedLines) {
                     source ||= Path.format(topFrameSource.source);
                     const sourceMap = SourceMap.get(source);
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     if (sourceMap && !sourceMap.mappings[line!]) {
                         return;
                     }
@@ -950,7 +956,6 @@ export namespace Debugger {
         }
 
         //Breakpoints
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const lineBreakpoints = breakpointLookup[line!];
         if (!lineBreakpoints) {
             return;
@@ -961,7 +966,7 @@ export namespace Debugger {
             return;
         }
         const source = Path.format(topFrame.source);
-        topFrame = undefined;
+        topFrame = undefined as any;
 
         for (const breakpoint of lineBreakpoints) {
             if (breakpoint.enabled && comparePaths(breakpoint.file, source)) {
@@ -969,7 +974,7 @@ export namespace Debugger {
                     const mappedCondition = mapExpressionNames(breakpoint.condition, breakpoint.sourceMap);
                     const condition = `return ${mappedCondition}`;
                     topFrame = topFrame || luaAssert(debug.getinfo(debugHookStackOffset, "nSluf"));
-                    const [success, result] = execute(condition, debugHookStackOffset, topFrame);
+                    const [success, result] = execute(condition, debugHookStackOffset, topFrame as any);
                     if (success && result) {
                         const activeThread = getActiveThread();
                         const conditionDisplay = `"${breakpoint.condition}" = "${result}"`;
@@ -1021,7 +1026,7 @@ export namespace Debugger {
     }
 
     function mapSources(str: string) {
-        [str] = str.gsub("(%s*)([^\r\n]+):(%d+):([^\r\n]+)", mapSource);
+        [str] = string.gsub(str,"(%s*)([^\r\n]+):(%d+):([^\r\n]+)", mapSource);
         return str;
     }
 
@@ -1042,7 +1047,7 @@ export namespace Debugger {
 
         if (propagate) {
             skipNextBreak = true;
-            luaError(err, level);
+            luaError(err as string, level);
         }
     }
 
@@ -1072,7 +1077,6 @@ export namespace Debugger {
     }
 
     //coroutine.create replacement for hooking threads
-    // eslint-disable-next-line @typescript-eslint/ban-types
     function debuggerCoroutineCreate(f: Function, allowBreak: boolean) {
         if (allowBreak && useXpcallInCoroutine()) {
             const originalFunc = f as DebuggableFunction;
@@ -1082,7 +1086,7 @@ export namespace Debugger {
                 }
                 const results = xpcall(wrappedFunc, breakForError);
                 if (results[0]) {
-                    return unpack(results, 2);
+                    return table.unpack(results, 2);
                 } else {
                     skipNextBreak = true;
                     const message = mapSources(tostring(results[1]));
@@ -1091,7 +1095,7 @@ export namespace Debugger {
             }
             f = debugFunc;
         }
-        const thread = luaCoroutineCreate(f);
+        const thread = luaCoroutineCreate(f as any);
         registerThread(thread);
         return thread;
     }
@@ -1111,7 +1115,6 @@ export namespace Debugger {
     }
 
     //coroutine.wrap replacement for hooking threads
-    // eslint-disable-next-line @typescript-eslint/ban-types
     function debuggerCoroutineWrap(f: Function) {
         const thread = debuggerCoroutineCreate(f, true);
         function resumer(...args: unknown[]) {
@@ -1122,7 +1125,7 @@ export namespace Debugger {
                 breakForError(results[1], 2, true);
             }
             threadStackOffsets.delete(activeThread);
-            return unpack(results, 2);
+            return table.unpack(results, 2);
         }
         return resumer;
     }
@@ -1175,7 +1178,7 @@ export namespace Debugger {
         if (hookType !== undefined) {
             _G.error = debuggerError;
             _G.assert = debuggerAssert;
-            debug.traceback = debuggerTraceback;
+            (debug as any).traceback = debuggerTraceback;
         } else {
             _G.error = luaError;
             _G.assert = luaAssert;
@@ -1187,12 +1190,12 @@ export namespace Debugger {
         isDebugHookDisabled = breakAtDepth < 0 && Breakpoint.getCount() === 0;
         // Do not disable debugging in luajit environment with pull breakpoints support enabled
         // or functions will be jitted and will lose debug info of lines and files
-        if (isDebugHookDisabled && (_G["jit"] === null || pullFile === null)) {
+        if (isDebugHookDisabled && ((_G as any)["jit"] === null || pullFile === null)) {
             debug.sethook();
 
             for (const [thread] of pairs(threadIds)) {
                 if (isThread(thread) && coroutine.status(thread) !== "dead") {
-                    debug.sethook(thread);
+                    debug.sethook(thread, undefined as any, "");
                 }
             }
         } else {
@@ -1209,11 +1212,11 @@ export namespace Debugger {
             __index(key: string) {
                 const info = debug.getinfo(this, "fu");
                 if (!info) return undefined;
-                const val = getUpvalues(info).vars[key];
+                const val = getUpvalues(info as any).vars[key];
                 if (!val) return undefined;
                 return val.val;
             }
-        });
+        } as any);
     };
 
     export function clearHook(): void {
@@ -1232,7 +1235,7 @@ export namespace Debugger {
 
         for (const [thread] of pairs(threadIds)) {
             if (isThread(thread) && coroutine.status(thread) !== "dead") {
-                debug.sethook(thread);
+                debug.sethook(thread, undefined as any, "");
             }
         }
 
@@ -1251,12 +1254,11 @@ export namespace Debugger {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/ban-types
         coroutine.create = (f: Function) => debuggerCoroutineCreate(f, breakInCoroutines);
         coroutine.wrap = debuggerCoroutineWrap;
         coroutine.resume = breakInCoroutines ? debuggerCoroutineResume : luaCoroutineResume;
 
-        const currentThread = coroutine.running();
+        const [currentThread] = coroutine.running();
         if (currentThread && !threadIds.get(currentThread)) {
             registerThread(currentThread);
         }
@@ -1301,7 +1303,7 @@ export namespace Debugger {
         const results = xpcall(() => func(...args), breakForError);
         popHook();
         if (results[0]) {
-            return unpack(results, 2);
+            return table.unpack(results, 2);
         } else {
             skipNextBreak = true;
             const message = mapSources(tostring(results[1]));

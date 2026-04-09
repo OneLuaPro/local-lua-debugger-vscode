@@ -1,6 +1,7 @@
 //MIT License
 //
 //Copyright (c) 2020 Tom Blind
+//Copyright (c) 2026 The OneLuaPro project authors
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -142,7 +143,7 @@ export namespace Send {
             variables: Format.makeExplicitArray()
         };
         for (const [name, info] of pairs(varsObj)) {
-            const dbgVar = name === "..." ? buildVarArgs(name, info.val as unknown[]) : buildVariable(name, info.val);
+            const dbgVar = name === "..." ? buildVarArgs(name, info.val as unknown[]) : buildVariable(tostring(name), info.val);
             table.insert(dbgVariables.variables, dbgVar);
         }
         send(dbgVariables);
@@ -212,7 +213,6 @@ export namespace Send {
         return ups;
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
     export function functionUpvalues(f: Function): void {
         const dbgProperties: LuaDebug.Properties = {
             tag: "$luaDebug",
@@ -256,7 +256,7 @@ export namespace Send {
         }
         const builtStrs: string[] = [];
         for (const [_, nameAndDesc] of ipairs(helpStrs)) {
-            const [name, desc] = unpack(nameAndDesc);
+            const [name, desc] = table.unpack(nameAndDesc);
             table.insert(builtStrs, `${name}${string.rep(" ", nameLength - name.length + 1)}: ${desc}`);
         }
         outputFile.write(`${table.concat(builtStrs, "\n")}\n`);

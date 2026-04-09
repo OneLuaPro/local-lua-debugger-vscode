@@ -1,8 +1,35 @@
+# --- Source Code & Build Metadata ---
+# Exclude TypeScript source files and map files
 **/*.ts
 **/*.js.map
 **/*.lua.map
+
+# Exclude configuration files
 **/tsconfig.json
 **/tslint.json
+**/.eslintrc.json
+eslint.config.js*
+
+# --- Development & Repo Assets ---
+# Exclude git and editor-specific metadata
 .vscode
 .gitignore
+.github/**
+
+# Exclude test suites and temporary files
 tests
+**/*~
+
+# Exclude large development documents and snapshots
+snapshot.md
+
+# --- Documentation ---
+# Exclude all markdown files except essential documentation
+*.md
+!README.md
+!CHANGELOG.md
+!changelog.md
+
+# --- Packaging ---
+# Ensure local-lua-debugger files are ignored if they are just build artifacts
+# (The bundled lldebugger.lua in the debugger/ folder will be included)

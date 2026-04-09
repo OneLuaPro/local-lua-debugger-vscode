@@ -66,7 +66,7 @@
         "indent": "off",
         "key-spacing": "warn",
         "keyword-spacing": "off",
-        "linebreak-style": ["warn", "unix"],
+        "linebreak-style": "off",
         "max-len": ["warn", {"code": 120}],
         "multiline-ternary": ["warn", "always-multiline"],
         "new-parens": "error",

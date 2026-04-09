@@ -1,13 +1,13 @@
 {
-    "name": "second-local-lua-debugger-vscode",
-    "publisher": "ismoh-games",
-    "version": "0.3.9",
-    "description": "Second Local Lua Debugger - simple Lua debugger with no dependencies - forked from https://github.com/tomblind/local-lua-debugger-vscode",
-    "displayName": "Second Local Lua Debugger",
-    "icon": "resources/Lua-Logo_128x128.png",
+    "name": "third-local-lua-debugger-vscode",
+    "publisher": "OneLuaPro",
+    "version": "0.4.0",
+    "description": "Third Local Lua Debugger - simple Lua debugger with no dependencies - forked from https://github.com/tomblind/local-lua-debugger-vscode - merged from https://github.com/Ismoh/local-lua-debugger-vscode and others",
+    "displayName": "Third Local Lua Debugger",
+    "icon": "resources/lua-logo-olp-dist-128x128.png",
     "repository": {
         "type": "github",
-        "url": "https://github.com/ismoh/local-lua-debugger-vscode.git"
+        "url": "https://github.com/OneLuaPro/local-lua-debugger-vscode.git"
     },
     "author": "tomblind@users.noreply.github.com",
     "license": "MIT",
@@ -35,21 +35,23 @@
         "publish": "npm run bundle && vsce publish"
     },
     "dependencies": {
-        "@vscode/debugadapter": "^1.67.0"
+        "@vscode/debugadapter": "^1.68.0"
     },
     "devDependencies": {
-        "@types/node": "^16.4.13",
-        "@types/vscode": "^1.44.0",
-        "@typescript-eslint/eslint-plugin": "^4.29.1",
-        "@typescript-eslint/parser": "^4.29.1",
-        "eslint": "^7.32.0",
-        "typescript": "^4.3.5",
-        "typescript-to-lua": "^1.1.1",
-        "@vscode/vsce": "^2.23.0"
+        "@types/node": "^25.5.2",
+        "@types/vscode": "^1.115.0",
+        "eslint": "^10.2.0",
+	"@eslint/js": "^10.0.1",
+	"typescript-eslint": "^8.58.1",
+        "typescript": "^5.9.3",
+	"lua-types": "^2.14.1",
+        "typescript-to-lua": "^1.34.0",
+        "@typescript-to-lua/language-extensions": "^1.19.0",
+        "@vscode/vsce": "^3.7.1"
     },
     "main": "./extension/extension.js",
     "engines": {
-        "vscode": "^1.44.0"
+        "vscode": "^1.115.0"
     },
     "activationEvents": [
         "onDebug"
@@ -57,11 +59,11 @@
     "contributes": {
         "configuration": [
             {
-                "title": "Second Local Lua Debugger",
+                "title": "Third Local Lua Debugger",
                 "properties": {
                     "lua-local.interpreter": {
                         "type": "string",
-                        "default": "",
+                        "default": "lua",
                         "description": "Lua stand-alone interpreter to use when none is specified in launch.json"
                     }
                 }
@@ -75,7 +77,7 @@
         "debuggers": [
             {
                 "type": "lua-local",
-                "label": "Second Local Lua Debugger",
+                "label": "Third Local Lua Debugger",
                 "program": "./extension/debugAdapter.js",
                 "runtime": "node",
                 "languages": [

@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 0.4.0 (Third Generation Release)
+
+- feat: Added full support for Lua 5.5 (including 64-bit integers and new operators)
+- feat: Implemented Zero-Config injection. The debugger is now automatically available via `_G.lldebugger` when launched through VS Code
+- refactor: Upgraded codebase to TypeScript 5.x and TSTL 1.34+
+- fix: Resolved critical `attempt to call a table value` error caused by faulty `unpack` generation in TSTL
+- fix: Optimized Windows path handling and improved debugger stability in nested environments
+- chore: Modernized extension settings and updated minimum VS Code engine requirement to 1.115.0
+- chore: Significantly reduced VSIX package size by optimizing build artifacts
+
 ## Version 0.3.9
 
 - fix: [#25](https://github.com/Ismoh/local-lua-debugger-vscode/issues/25): Change the error wrapper to pass the original error intact ([#26](https://github.com/Ismoh/local-lua-debugger-vscode/pull/26))

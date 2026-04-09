@@ -1,6 +1,7 @@
 //MIT License
 //
 //Copyright (c) 2020 Tom Blind
+//Copyright (c) 2026 The OneLuaPro project authors
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +50,7 @@ export namespace Message {
                 try {
                     message = JSON.parse(possibleMessage);
                 } catch {
+		    // Ignore invalid JSON fragments
                 }
                 const end = messageEnd + (endToken as string).length;
                 if (isMessage(message)) {

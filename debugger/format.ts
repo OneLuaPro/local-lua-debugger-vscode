@@ -1,6 +1,7 @@
 //MIT License
 //
 //Copyright (c) 2020 Tom Blind
+//Copyright (c) 2026 The OneLuaPro project authors
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +24,6 @@
 import {luaRawLen, luaAssert} from "./luafuncs";
 
 export namespace Format {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     export const arrayTag = {} as "$arrayTag";
 
     export interface ExplicitArray {
@@ -50,7 +50,7 @@ export namespace Format {
     const escapesPattern = "[\n\r\"\\\b\f\t%z\x01-\x1F]";
 
     function replaceEscape(char: string) {
-        const [byte] = luaAssert(...string.byte(char));
+        const byte = luaAssert(string.byte(char));
         if (byte >= 0 && byte < 32) { //Control characters
             return string.format("\\u%.4X", byte);
         }
@@ -58,7 +58,7 @@ export namespace Format {
     }
 
     function escape(str: string) {
-        const [escaped] = str.gsub(escapesPattern, replaceEscape);
+        const [escaped] = string.gsub(str,escapesPattern, replaceEscape);
         return escaped;
     }
 
@@ -91,17 +91,17 @@ export namespace Format {
                 const arrayVals: string[] = [];
                 for (const [_, arrayVal] of ipairs(val)) {
                     const valStr = asJson(arrayVal, indent + 1, tables);
-                    table.insert(arrayVals, `\n${indentStr.rep(indent + 1)}${valStr}`);
+                    table.insert(arrayVals, `\n${string.rep(indentStr,indent + 1)}${valStr}`);
                 }
-                return `[${table.concat(arrayVals, ",")}\n${indentStr.rep(indent)}]`;
+                return `[${table.concat(arrayVals, ",")}\n${string.rep(indentStr,indent)}]`;
 
             } else {
                 const kvps: string[] = [];
                 for (const [k, v] of pairs(val as AnyTable)) {
                     const valStr = asJson(v, indent + 1, tables);
-                    table.insert(kvps, `\n${indentStr.rep(indent + 1)}"${escape(tostring(k))}": ${valStr}`);
+                    table.insert(kvps, `\n${string.rep(indentStr,indent + 1)}"${escape(tostring(k))}": ${valStr}`);
                 }
-                return (kvps.length > 0) ? `{${table.concat(kvps, ",")}\n${indentStr.rep(indent)}}` : "{}";
+                return (kvps.length > 0) ? `{${table.concat(kvps, ",")}\n${string.rep(indentStr,indent)}}` : "{}";
             }
 
         } else if (valType === "number" || valType === "boolean") {

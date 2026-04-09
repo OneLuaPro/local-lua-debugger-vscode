@@ -1,6 +1,7 @@
 //MIT License
 //
 //Copyright (c) 2020 Tom Blind
+//Copyright (c) 2026 The OneLuaPro project authors
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +26,8 @@ import {luaAssert} from "./luafuncs";
 export namespace Path {
     export const separator = (() => {
         const config = (_G.package as typeof _G["package"] & Record<"config", string | undefined>).config;
-        if (config) {
-            const [sep] = config.match("^[^\n]+");
+        if (config !== undefined) {
+            const [sep] = string.match(config,"^[^\n]+");
             if (sep) {
                 return sep;
             }
@@ -40,9 +41,9 @@ export namespace Path {
         if (!cwd) {
             const [p] = io.popen(separator === "\\" ? "cd" : "pwd");
             if (p) {
-                const output = p.read("*a");
+                const output = p.read("a");
                 if (output) {
-                    [cwd] = output.match("^%s*(.-)%s*$");
+                    [cwd] = string.match(output,"^%s*(.-)%s*$");
                 }
             }
             cwd = cwd ?? "";
@@ -51,16 +52,16 @@ export namespace Path {
     }
 
     export function dirName(path: string): string {
-        const [dir] = path.match(`^(.-)${separator}+[^${separator}]+$`);
+        const [dir] = string.match(path,`^(.-)${separator}+[^${separator}]+$`);
         return dir ?? ".";
     }
 
     export function splitDrive(path: string): LuaMultiReturn<[string, string]> {
-        let [drive, pathPart] = path.match("^[@=]?([a-zA-Z]:)[\\/](.*)");
+        let [drive, pathPart] = string.match(path,"^[@=]?([a-zA-Z]:)[\\/](.*)");
         if (drive) {
-            drive = drive.upper() + separator;
+            drive = string.upper(drive) + separator;
         } else {
-            [drive, pathPart] = path.match("^[@=]?([\\/]*)(.*)");
+            [drive, pathPart] = string.match(path,"^[@=]?([\\/]*)(.*)");
         }
         return $multi(luaAssert(drive), luaAssert(pathPart));
     }
@@ -72,7 +73,7 @@ export namespace Path {
         if (!formattedPath) {
             const [drive, pathOnly] = splitDrive(path);
             const pathParts: string[] = [];
-            for (const [part] of luaAssert(pathOnly).gmatch("[^\\/]+")) {
+            for (const [part] of string.gmatch(luaAssert(pathOnly),"[^\\/]+")) {
                 if (part !== ".") {
                     if (part === ".." && pathParts.length > 0 && pathParts[pathParts.length - 1] !== "..") {
                         table.remove(pathParts);
@@ -81,7 +82,7 @@ export namespace Path {
                     }
                 }
             }
-            const [formattedDrive] = drive.gsub("[\\/]+", separator);
+            const [formattedDrive] = string.gsub(drive,"[\\/]+", separator);
             formattedPath = `${formattedDrive}${table.concat(pathParts, separator)}`;
             formattedPathCache[path] = formattedPath;
         }

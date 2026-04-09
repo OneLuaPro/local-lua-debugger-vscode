@@ -1,6 +1,7 @@
 //MIT License
 //
 //Copyright (c) 2020 Tom Blind
+//Copyright (c) 2026 The OneLuaPro project authors
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +40,8 @@ declare function loadfile(
 ): LuaMultiReturn<[{ (this: void): unknown }, undefined] | [undefined, string]>;
 
 //Set global `unpack` so tstl generated code always has access to it
-_G.unpack ??= (table as typeof table & Record<"unpack", typeof _G["unpack"]>).unpack;
+//_G.unpack ??= (table as typeof table & Record<"unpack", typeof _G["unpack"]>).unpack;
+(_G as any).unpack ??= (table as any).unpack;
 
 export const luaAssert = _G.assert;
 export const luaError = _G.error;
@@ -50,7 +52,6 @@ export const luaCoroutineResume = coroutine.resume;
 
 export const luaLenMetamethodSupported = (() => (setmetatable({}, {__len: () => 42}) as unknown[]).length === 42)();
 
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 export const luaRawLen = rawlen ?? function<T extends AnyTable>(v: T | string): number {
     if (!luaLenMetamethodSupported) {
         return (v as unknown as unknown[]).length;
@@ -76,11 +77,10 @@ export function loadLuaString(
     str: string,
     env?: Env
 ): LuaMultiReturn<[{ (this: void): LuaMultiReturn<unknown[]> }, undefined] | [undefined, string]> {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (setfenv !== undefined) {
-        const [f, e] = loadstring(str, str);
+    if ((_G as any).setfenv !== undefined) {
+        const [f, e] = (_G as any).loadstring(str, str);
         if (f && env) {
-            setfenv(f, env);
+            (_G as any).setfenv(f, env);
         }
         return $multi(f as { (this: void): LuaMultiReturn<unknown[]> }, e as undefined);
 
@@ -93,11 +93,10 @@ export function loadLuaFile(
     filename: string,
     env?: Env
 ): LuaMultiReturn<[{ (this: void): unknown }, undefined] | [undefined, string]> {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (setfenv !== undefined) {
+    if ((_G as any).setfenv !== undefined) {
         const [f, e] = loadfile(filename);
         if (f && env) {
-            setfenv(f, env);
+            (_G as any).setfenv(f, env);
         }
         return $multi(f as { (this: void): unknown }, e as undefined);
 
@@ -112,9 +111,8 @@ export function luaGetEnv(level: number, thread?: LuaThread): Env | undefined {
         return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (getfenv !== undefined) {
-        return getfenv(info.func) as Env | undefined;
+    if ((_G as any).getfenv !== undefined) {
+        return (_G as any).getfenv(info.func) as Env | undefined;
     } else {
         let i = 1;
         while (true) {

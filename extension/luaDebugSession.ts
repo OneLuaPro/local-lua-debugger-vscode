@@ -1,6 +1,7 @@
 //MIT License
 //
 //Copyright (c) 2020 Tom Blind
+//Copyright (c) 2026 The OneLuaPro project authors
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -58,7 +59,6 @@ const enum OutputCategory {
     StdErr = "stderr",
     Command = "command",
     Request = "request",
-    // eslint-disable-next-line @typescript-eslint/no-shadow
     Message = "message",
     Info = "info",
     Error = "error"
@@ -157,7 +157,7 @@ export class LuaDebugSession extends LoggingDebugSession {
 
     protected initializeRequest(
         response: DebugProtocol.InitializeResponse,
-        args: DebugProtocol.InitializeRequestArguments
+        _args: DebugProtocol.InitializeRequestArguments
     ): void {
         this.showOutput("initializeRequest", OutputCategory.Request);
 
@@ -577,7 +577,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
+    protected continueRequest(response: DebugProtocol.ContinueResponse, _args: DebugProtocol.ContinueArguments): void {
         this.showOutput("continueRequest", OutputCategory.Request);
         if (this.sendCommand("cont")) {
             this.variableHandles.reset();
@@ -589,7 +589,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
+    protected nextRequest(response: DebugProtocol.NextResponse, _args: DebugProtocol.NextArguments): void {
         this.showOutput("nextRequest", OutputCategory.Request);
         if (this.sendCommand("step")) {
             this.variableHandles.reset();
@@ -601,7 +601,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
+    protected stepInRequest(response: DebugProtocol.StepInResponse, _args: DebugProtocol.StepInArguments): void {
         this.showOutput("stepInRequest", OutputCategory.Request);
         if (this.sendCommand("stepin")) {
             this.variableHandles.reset();
@@ -613,7 +613,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
+    protected stepOutRequest(response: DebugProtocol.StepOutResponse, _args: DebugProtocol.StepOutArguments): void {
         this.showOutput("stepOutRequest", OutputCategory.Request);
         if (this.sendCommand("stepout")) {
             this.variableHandles.reset();
@@ -701,7 +701,7 @@ export class LuaDebugSession extends LoggingDebugSession {
 
     protected terminateRequest(
         response: DebugProtocol.TerminateResponse,
-        args: DebugProtocol.TerminateArguments
+        _args: DebugProtocol.TerminateArguments
     ): void {
         this.showOutput("terminateRequest", OutputCategory.Request);
 

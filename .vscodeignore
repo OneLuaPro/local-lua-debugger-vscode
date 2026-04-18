@@ -4,6 +4,22 @@
 **/*.js.map
 **/*.lua.map
 
+# CMake build artifacts
+CMakeFiles/
+CMakeCache.txt
+CMakeLists.txt
+cmake_install.cmake
+cmake/
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.rule
+*.dir/
+x64/
+Win32/
+Release/
+Debug/
+
 # Exclude configuration files
 **/tsconfig.json
 **/tslint.json
@@ -17,6 +33,7 @@ eslint.config.js*
 .github/**
 
 # Exclude test suites and temporary files
+tools
 tests
 **/*~
 

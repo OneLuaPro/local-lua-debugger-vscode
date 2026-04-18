@@ -46,33 +46,48 @@ add_custom_command(
   COMMENT "Running npm install..."
   VERBATIM
 )
+add_custom_target(npm_install
+  DEPENDS "${DEBUGGER_SRC}/node_modules/.package-lock.json"
+)
 
 # ------------------------------------------------------------------------------
-# 2. Build
-# Transpiles TypeScript (usually creates files in the 'out' directory)
+# 2. npm build-debugger
+# Transpiles TypeScript to Lua
 add_custom_command(
   OUTPUT "${DEBUGGER_SRC}/debugger/lldebugger.lua"
-  COMMAND ${NPM_EXECUTABLE} run build
+  COMMAND ${NPM_EXECUTABLE} run build-debugger
   WORKING_DIRECTORY "${DEBUGGER_SRC}"
   DEPENDS "${DEBUGGER_SRC}/node_modules/.package-lock.json"
-  COMMENT "Running npm build (transpiling)..."
+  COMMENT "Running npm build-debugger (transpiling)..."
   VERBATIM
 )
+add_custom_target(npm_build_debugger
+  DEPENDS "${DEBUGGER_SRC}/debugger/lldebugger.lua"
+)
+add_dependencies(npm_build_debugger npm_install)
+
 
 # ------------------------------------------------------------------------------
-# 3. Bundle
-# Bundles everything into the final extension/extension.js
+# 3. npm build-extension
+# Transpiles TypeScript to JavaScript
 add_custom_command(
   OUTPUT "${DEBUGGER_SRC}/extension/extension.js"
-  COMMAND ${NPM_EXECUTABLE} run bundle
+  COMMAND ${NPM_EXECUTABLE} run build-extension
   WORKING_DIRECTORY "${DEBUGGER_SRC}"
   DEPENDS "${DEBUGGER_SRC}/debugger/lldebugger.lua"
-  COMMENT "Running npm bundle (webpacking)..."
+  COMMENT "Running npm build-extension (transpiling)..."
   VERBATIM
 )
+add_custom_target(npm_build_extension
+  DEPENDS "${DEBUGGER_SRC}/extension/extension.js"
+)
+add_dependencies(npm_build_extension npm_build_debugger)
 
 # ------------------------------------------------------------------------------
-# 4. VSIX Packaging
+# npm run lint skipped here
+
+# ------------------------------------------------------------------------------
+# 4. VSIX Packaging and optional signing
 set(VSIX_FILE "${CMAKE_BINARY_DIR}/${PACKAGE_NAME}-${DEBUGGER_VERSION}.vsix")
 
 add_custom_command(
@@ -83,10 +98,6 @@ add_custom_command(
   COMMENT "Creating VSIX package: ${VSIX_FILE}"
   VERBATIM
 )
-
-# ------------------------------------------------------------------------------
-# 5. Optional Signing
-# Uses the signing logic from your first script
 if(SIGN_PACKAGE AND CODE_SIGN_FINGERPRINT)
   add_custom_command(
     APPEND
@@ -96,12 +107,13 @@ if(SIGN_PACKAGE AND CODE_SIGN_FINGERPRINT)
     COMMENT "Signing VSIX package with fingerprint ${CODE_SIGN_FINGERPRINT}..."
   )
 endif()
+add_custom_target(package_vsix ALL
+  DEPENDS "${VSIX_FILE}"
+)
+add_dependencies(package_vsix npm_build_extension)
 
 # ------------------------------------------------------------------------------
-# Targets, Dependencies & Install
-add_custom_target(bundle_debugger DEPENDS "${DEBUGGER_SRC}/extension/extension.js")
-add_custom_target(package_debugger ALL DEPENDS "${VSIX_FILE}")
-add_dependencies(package_debugger bundle_debugger)
+# Install
 install(FILES "${VSIX_FILE}"
   DESTINATION "opt/vscode"
 )

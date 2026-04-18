@@ -39,7 +39,7 @@
     },
     "devDependencies": {
         "@types/node": "^25.5.2",
-        "@types/vscode": "^1.115.0",
+        "@types/vscode": "^1.86.0",
         "eslint": "^10.2.0",
 	"@eslint/js": "^10.0.1",
 	"typescript-eslint": "^8.58.1",
@@ -51,7 +51,7 @@
     },
     "main": "./extension/extension.js",
     "engines": {
-        "vscode": "^1.115.0"
+        "vscode": "^1.86.0"
     },
     "activationEvents": [
         "onDebug"

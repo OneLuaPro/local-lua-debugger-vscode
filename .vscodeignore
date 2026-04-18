@@ -19,6 +19,9 @@ x64/
 Win32/
 Release/
 Debug/
+.ninja_lock
+.ninja_log
+build.ninja
 
 # Exclude configuration files
 **/tsconfig.json
@@ -29,6 +32,7 @@ eslint.config.js*
 # --- Development & Repo Assets ---
 # Exclude git and editor-specific metadata
 .vscode
+.vsixmanifest
 .gitignore
 .github/**
 

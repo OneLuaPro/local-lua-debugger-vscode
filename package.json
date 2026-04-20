@@ -1,9 +1,9 @@
 {
-    "name": "third-local-lua-debugger-vscode",
+    "name": "oneluapro-local-lua-debugger",
     "publisher": "OneLuaPro",
     "version": "0.4.0",
-    "description": "Third Local Lua Debugger - simple Lua debugger with no dependencies - forked from https://github.com/tomblind/local-lua-debugger-vscode - merged from https://github.com/Ismoh/local-lua-debugger-vscode and others",
-    "displayName": "Third Local Lua Debugger",
+    "description": "OneLuaPro Local Lua Debugger - simple Lua debugger with no dependencies - forked from https://github.com/tomblind/local-lua-debugger-vscode - merged from https://github.com/Ismoh/local-lua-debugger-vscode and others",
+    "displayName": "OneLuaPro Local Lua Debugger",
     "icon": "resources/lua-logo-olp-dist-128x128.png",
     "repository": {
         "type": "github",
@@ -22,7 +22,8 @@
         "typescript-to-lua",
         "love",
         "löve",
-        "corona"
+        "corona",
+	"OneLuaPro"
     ],
     "scripts": {
         "lint-debugger": "cd debugger && eslint . && cd ..",
@@ -59,7 +60,7 @@
     "contributes": {
         "configuration": [
             {
-                "title": "Third Local Lua Debugger",
+                "title": "OneLuaPro Local Lua Debugger",
                 "properties": {
                     "lua-local.interpreter": {
                         "type": "string",
@@ -77,7 +78,7 @@
         "debuggers": [
             {
                 "type": "lua-local",
-                "label": "Third Local Lua Debugger",
+                "label": "OneLuaPro Local Lua Debugger",
                 "program": "./extension/debugAdapter.js",
                 "runtime": "node",
                 "languages": [

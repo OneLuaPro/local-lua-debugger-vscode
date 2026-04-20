@@ -1,12 +1,12 @@
-# `Third` Local Lua Debugger for Visual Studio Code
+# OneLuaPro Local Lua Debugger
 
-A simple Lua debugger which requires no additional dependencies.
+A simple Lua debugger for Visual Studio Code which requires no additional dependencies.
 
 ---
 
 ## Disclaimer (Third Generation Fork)
 
-This repository represents the **"Third" Generation** of the Local Lua Debugger. It consolidates years of community developments into a single, modernized codebase.
+This repository represents the **Third Generation** of the Local Lua Debugger. It consolidates years of community developments into a single, modernized codebase.
 
 ### Consolidation & Modernization
 
